@@ -3,6 +3,83 @@
 ## Project Overview
 This project implements RNA structure prediction using ESM (Evolutionary Scale Modeling) with few-shot learning capabilities. It analyzes RNA sequences and predicts their structural properties under various degradation conditions.
 
+## Workflow
+
+```mermaid
+graph TB
+    subgraph Input["1. Input Data"]
+        A1[RNA Sequences]:::inputNode
+        A2[Structure]:::inputNode
+        A3[Loop Types]:::inputNode
+        A4[Degradation Rates]:::inputNode
+        A1 & A2 & A3 & A4 --> B1[Data Loading]:::processNode
+    end
+
+    subgraph Preprocessing["2. Preprocessing"]
+        C1[Feature Extraction]:::processNode
+        C2[ESM Embeddings]:::processNode
+        C3[Structure Features]:::processNode
+        B1 --> C1 & C2 & C3
+        C1 & C2 & C3 --> C4[Feature Fusion]:::processNode
+    end
+
+    subgraph ModelArch["3. Model Architecture"]
+        D1[ESM Backbone]:::modelNode
+        D2[LSTM Layer]:::modelNode
+        D3[Attention]:::modelNode
+        C4 --> D1 --> D2 --> D3
+    end
+
+    subgraph Predictions["4. Prediction Heads"]
+        E1[Reactivity]:::outputNode
+        E2[deg_Mg_pH10]:::outputNode
+        E3[deg_pH10]:::outputNode
+        E4[deg_Mg_50C]:::outputNode
+        E5[deg_50C]:::outputNode
+        D3 --> E1 & E2 & E3 & E4 & E5
+    end
+
+    subgraph Training["5. Training"]
+        F1[Batch Processing]:::trainNode
+        F2[Forward Pass]:::trainNode
+        F3[Loss Calculation]:::trainNode
+        F4[Backpropagation]:::trainNode
+        F1 --> F2 --> F3 --> F4
+        F4 --> |Next Batch| F1
+    end
+
+    subgraph Hardware["6. Device"]
+        G1[MPS]:::hwNode
+        G2[CUDA]:::hwNode
+        G3[CPU]:::hwNode
+    end
+
+    subgraph Monitor["7. Monitoring"]
+        H1[TensorBoard]:::monitorNode
+        H2[Metrics]:::monitorNode
+        H3[Checkpoints]:::monitorNode
+        F3 --> H1 & H2 --> H3
+    end
+
+    %% Style Definitions
+    classDef inputNode fill:#d1e8ff,stroke:#333,stroke-width:2px
+    classDef processNode fill:#d4eadc,stroke:#333,stroke-width:2px
+    classDef modelNode fill:#ffe6cc,stroke:#333,stroke-width:2px
+    classDef outputNode fill:#fff2cc,stroke:#333,stroke-width:2px
+    classDef trainNode fill:#e6e6e6,stroke:#333,stroke-width:2px
+    classDef hwNode fill:#d9d2e9,stroke:#333,stroke-width:2px
+    classDef monitorNode fill:#f9d9d9,stroke:#333,stroke-width:2px
+
+    %% Subgraph Styles
+    style Input fill:#f8f9fa,stroke:#333,stroke-width:2px
+    style Preprocessing fill:#f8f9fa,stroke:#333,stroke-width:2px
+    style ModelArch fill:#f8f9fa,stroke:#333,stroke-width:2px
+    style Predictions fill:#f8f9fa,stroke:#333,stroke-width:2px
+    style Training fill:#f8f9fa,stroke:#333,stroke-width:2px
+    style Hardware fill:#f8f9fa,stroke:#333,stroke-width:2px
+    style Monitor fill:#f8f9fa,stroke:#333,stroke-width:2px
+```
+
 ## Directory Structure
 ```
 rna_analysis/
