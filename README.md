@@ -8,56 +8,56 @@ This project implements RNA structure prediction using ESM (Evolutionary Scale M
 ```mermaid
 graph TB
     subgraph Input["1. Input Data"]
-        A1[RNA Sequences]:::inputNode
-        A2[Structure]:::inputNode
-        A3[Loop Types]:::inputNode
-        A4[Degradation Rates]:::inputNode
-        A1 & A2 & A3 & A4 --> B1[Data Loading]:::processNode
+        A1[RNA Sequences]
+        A2[Structure]
+        A3[Loop Types]
+        A4[Degradation Rates]
+        A1 & A2 & A3 & A4 --> B1[Data Loading]
     end
 
     subgraph Preprocessing["2. Preprocessing"]
-        C1[Feature Extraction]:::processNode
-        C2[ESM Embeddings]:::processNode
-        C3[Structure Features]:::processNode
+        C1[Feature Extraction]
+        C2[ESM Embeddings]
+        C3[Structure Features]
         B1 --> C1 & C2 & C3
-        C1 & C2 & C3 --> C4[Feature Fusion]:::processNode
+        C1 & C2 & C3 --> C4[Feature Fusion]
     end
 
     subgraph ModelArch["3. Model Architecture"]
-        D1[ESM Backbone]:::modelNode
-        D2[LSTM Layer]:::modelNode
-        D3[Attention]:::modelNode
+        D1[ESM Backbone]
+        D2[LSTM Layer]
+        D3[Attention]
         C4 --> D1 --> D2 --> D3
     end
 
     subgraph Predictions["4. Prediction Heads"]
-        E1[Reactivity]:::outputNode
-        E2[deg_Mg_pH10]:::outputNode
-        E3[deg_pH10]:::outputNode
-        E4[deg_Mg_50C]:::outputNode
-        E5[deg_50C]:::outputNode
+        E1[Reactivity]
+        E2[deg_Mg_pH10]
+        E3[deg_pH10]
+        E4[deg_Mg_50C]
+        E5[deg_50C]
         D3 --> E1 & E2 & E3 & E4 & E5
     end
 
     subgraph Training["5. Training"]
-        F1[Batch Processing]:::trainNode
-        F2[Forward Pass]:::trainNode
-        F3[Loss Calculation]:::trainNode
-        F4[Backpropagation]:::trainNode
+        F1[Batch Processing]
+        F2[Forward Pass]
+        F3[Loss Calculation]
+        F4[Backpropagation]
         F1 --> F2 --> F3 --> F4
         F4 --> |Next Batch| F1
     end
 
     subgraph Hardware["6. Device"]
-        G1[MPS]:::hwNode
-        G2[CUDA]:::hwNode
-        G3[CPU]:::hwNode
+        G1[MPS]
+        G2[CUDA]
+        G3[CPU]
     end
 
     subgraph Monitor["7. Monitoring"]
-        H1[TensorBoard]:::monitorNode
-        H2[Metrics]:::monitorNode
-        H3[Checkpoints]:::monitorNode
+        H1[TensorBoard]
+        H2[Metrics]
+        H3[Checkpoints]
         F3 --> H1 & H2 --> H3
     end
 ```
