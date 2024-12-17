@@ -1,0 +1,28 @@
+model:
+  name: "ESMRNAPredictor"
+  esm_model: "esm2_t33_650M_UR50D"
+  hidden_dim: 256
+  num_layers: 3
+  dropout: 0.2
+  embedding_dim: 1280
+
+training:
+  learning_rate: 1e-4
+  batch_size: 32
+  epochs: 100
+  weight_decay: 0.01
+  gradient_clip: 1.0
+  scheduler_patience: 5
+  scheduler_factor: 0.5
+
+data:
+  train_path: "data/raw/train.json"
+  test_path: "data/raw/test.json"
+  processed_dir: "data/processed"
+  embeddings_dir: "data/embeddings"
+  sn_threshold: 1.0
+
+logging:
+  tensorboard_dir: "runs/tensorboard"
+  save_dir: "runs/models"
+  log_interval: 10

@@ -1,0 +1,16 @@
+# Inherit from default.yaml
+defaults:
+  - default
+
+few_shot:
+  n_support: 5
+  n_query: 10
+  episodes: 1000
+  adaptation_steps: 5
+  meta_lr: 0.001
+  update_step_size: 0.1
+  
+model:
+  use_prototypes: true
+  prototype_dim: 128
+  distance_metric: "cosine"
