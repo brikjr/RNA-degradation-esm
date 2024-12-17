@@ -48,12 +48,6 @@ graph TB
         F4 --> |Next Batch| F1
     end
 
-    subgraph Hardware["6. Device"]
-        G1[MPS]
-        G2[CUDA]
-        G3[CPU]
-    end
-
     subgraph Monitor["7. Monitoring"]
         H1[TensorBoard]
         H2[Metrics]
