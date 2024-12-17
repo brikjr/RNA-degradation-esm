@@ -7,7 +7,7 @@ This project implements RNA structure prediction using ESM (Evolutionary Scale M
 
 ```mermaid
 graph TB
-    subgraph Input["1. Input Data"]
+    subgraph Input Data
         A1[RNA Sequences]
         A2[Structure]
         A3[Loop Types]
@@ -15,7 +15,7 @@ graph TB
         A1 & A2 & A3 & A4 --> B1[Data Loading]
     end
 
-    subgraph Preprocessing["2. Preprocessing"]
+    subgraph Preprocessing
         C1[Feature Extraction]
         C2[ESM Embeddings]
         C3[Structure Features]
@@ -23,14 +23,14 @@ graph TB
         C1 & C2 & C3 --> C4[Feature Fusion]
     end
 
-    subgraph ModelArch["3. Model Architecture"]
+    subgraph Model Architecture
         D1[ESM Backbone]
         D2[LSTM Layer]
         D3[Attention]
         C4 --> D1 --> D2 --> D3
     end
 
-    subgraph Predictions["4. Prediction Heads"]
+    subgraph Prediction Heads
         E1[Reactivity]
         E2[deg_Mg_pH10]
         E3[deg_pH10]
@@ -39,7 +39,7 @@ graph TB
         D3 --> E1 & E2 & E3 & E4 & E5
     end
 
-    subgraph Training["5. Training"]
+    subgraph Training
         F1[Batch Processing]
         F2[Forward Pass]
         F3[Loss Calculation]
@@ -48,10 +48,10 @@ graph TB
         F4 --> |Next Batch| F1
     end
 
-    subgraph Monitor["7. Monitoring"]
+    subgraph Monitoring
         H1[TensorBoard]
         H2[Metrics]
-        H3[Checkpoints]
+        H3[Checkpoints]ß
         F3 --> H1 & H2 --> H3
     end
 ```
