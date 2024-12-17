@@ -8,7 +8,7 @@ project_root = dirname(dirname(abspath(__file__)))
 sys.path.append(project_root)
 
 from src.training.config import Config
-from src.data.preprocessing import RNAPreprocessor
+from src.data.preprosessing import RNAPreprocessor
 
 def main():
     parser = argparse.ArgumentParser()
@@ -27,12 +27,12 @@ def main():
     preprocessor = RNAPreprocessor(config)
     
     # Process training data
-    train_data = preprocessor.load_data(Path(args.input_dir) / 'train.json')
+    train_data = preprocessor.load_data(Path(args.input_dir) / 'train.csv')
     sequences, features, targets = preprocessor.process_data(train_data)
     preprocessor.save_processed_data(sequences, features, targets, 'train')
     
     # Process validation data
-    val_data = preprocessor.load_data(Path(args.input_dir) / 'test.json')
+    val_data = preprocessor.load_data(Path(args.input_dir) / 'test.csv')
     sequences, features, targets = preprocessor.process_data(val_data)
     preprocessor.save_processed_data(sequences, features, targets, 'val')
 
