@@ -58,11 +58,11 @@ rna_analysis/
 ## Installation
 ```bash
 # Create conda environment
-conda create -n rna_env python=3.8
+conda create -n rna_env python=3.10
 conda activate rna_env
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ## Usage

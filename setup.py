@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "torch>=1.9.0",
-        "esm==1.0.0",
+        "esm==3.0.0",
         "numpy>=1.19.2",
         "pandas>=1.2.0",
         "scikit-learn>=0.24.0",
@@ -14,9 +14,10 @@ setup(
         "matplotlib>=3.3.0",
         "seaborn>=0.11.0",
         "pyyaml>=5.4.0",
+        "ipykernel>=5.1.0",
     ],
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Rishabh Pandey",
+    author_email="brikjr@gmail.com",
     description="RNA Structure Prediction with Few-Shot Learning",
     python_requires=">=3.8",
 )

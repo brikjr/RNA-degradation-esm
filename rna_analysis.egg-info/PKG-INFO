@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: rna_analysis
+Version: 0.1.0
+Summary: RNA Structure Prediction with Few-Shot Learning
+Author: Rishabh Pandey
+Author-email: brikjr@gmail.com
+Requires-Python: >=3.8
+Requires-Dist: torch>=1.9.0
+Requires-Dist: esm==3.0.0
+Requires-Dist: numpy>=1.19.2
+Requires-Dist: pandas>=1.2.0
+Requires-Dist: scikit-learn>=0.24.0
+Requires-Dist: tensorboard>=2.4.0
+Requires-Dist: matplotlib>=3.3.0
+Requires-Dist: seaborn>=0.11.0
+Requires-Dist: pyyaml>=5.4.0
+Requires-Dist: ipykernel>=5.1.0

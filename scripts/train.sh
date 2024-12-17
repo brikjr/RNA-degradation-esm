@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Activate conda environment (if using conda)
-# conda activate esm_env
+# conda activate rna_env
 
 # Process data first
 python scripts/prepare_data.py \

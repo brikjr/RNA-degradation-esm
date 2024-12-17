@@ -1,5 +1,12 @@
 import argparse
 from pathlib import Path
+import sys
+from os.path import abspath, dirname
+
+# Add project root to Python path
+project_root = dirname(dirname(abspath(__file__)))
+sys.path.append(project_root)
+
 from src.training.config import Config
 from src.data.preprocessing import RNAPreprocessor
 
