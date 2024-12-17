@@ -61,15 +61,6 @@ graph TB
         F3 --> H1 & H2 --> H3
     end
 
-    %% Style Definitions
-    classDef inputNode fill:#d1e8ff,stroke:#333,stroke-width:2px
-    classDef processNode fill:#d4eadc,stroke:#333,stroke-width:2px
-    classDef modelNode fill:#ffe6cc,stroke:#333,stroke-width:2px
-    classDef outputNode fill:#fff2cc,stroke:#333,stroke-width:2px
-    classDef trainNode fill:#e6e6e6,stroke:#333,stroke-width:2px
-    classDef hwNode fill:#d9d2e9,stroke:#333,stroke-width:2px
-    classDef monitorNode fill:#f9d9d9,stroke:#333,stroke-width:2px
-
     %% Subgraph Styles
     style Input fill:#f8f9fa,stroke:#333,stroke-width:2px
     style Preprocessing fill:#f8f9fa,stroke:#333,stroke-width:2px
