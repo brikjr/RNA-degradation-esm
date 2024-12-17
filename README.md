@@ -60,15 +60,6 @@ graph TB
         H3[Checkpoints]:::monitorNode
         F3 --> H1 & H2 --> H3
     end
-
-    %% Subgraph Styles
-    style Input fill:#f8f9fa,stroke:#333,stroke-width:2px
-    style Preprocessing fill:#f8f9fa,stroke:#333,stroke-width:2px
-    style ModelArch fill:#f8f9fa,stroke:#333,stroke-width:2px
-    style Predictions fill:#f8f9fa,stroke:#333,stroke-width:2px
-    style Training fill:#f8f9fa,stroke:#333,stroke-width:2px
-    style Hardware fill:#f8f9fa,stroke:#333,stroke-width:2px
-    style Monitor fill:#f8f9fa,stroke:#333,stroke-width:2px
 ```
 
 ## Directory Structure
