@@ -61,49 +61,72 @@ class RNAPreprocessor:
     
     def process_data(self, df: pd.DataFrame) -> Tuple[List[str], np.ndarray, Dict[str, np.ndarray]]:
         """Process full dataset"""
-        # Filter by signal-to-noise
-        df = df[df['signal_to_noise'] >= self.config.data.sn_threshold].copy()
+        print("Processing data...")
+        if 'signal_to_noise' in df.columns:
+            df = df[df['signal_to_noise'] >= self.config.data.sn_threshold].copy()
         
         sequences = []
         features = []
         targets = {
-            'reactivity': [], 'deg_Mg_pH10': [], 'deg_pH10': [], 
-            'deg_Mg_50C': [], 'deg_50C': []
+            'reactivity': [],
+            'deg_Mg_pH10': [],
+            'deg_pH10': [],
+            'deg_Mg_50C': [],
+            'deg_50C': []
         }
         
-        for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing rows"):
-            # Process sequence
-            seq_features = self.preprocess_sequence(row['sequence'])
-            struct_features = self.preprocess_structure(row['structure'])
-            
-            # Get ESM embeddings
-            embeddings = self.generate_esm_embeddings(row['sequence'])
-            mean_embeddings = embeddings.mean(axis=0)  # Reduce embeddings to 1D
-            
-            # Combine features
-            combined_features = np.concatenate([
-                mean_embeddings,
-                np.array(list(seq_features.values())),
-                np.array(list(struct_features.values()))
-            ])
-            
-            sequences.append(row['sequence'])
-            features.append(combined_features)
-            
-            # Process targets
-            for name in targets:
-                target_columns = [col for col in df.columns if col.startswith(name)]
-                target_values = row[target_columns].values
-                targets[name].append(target_values)
+        for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing rows"):
+            try:
+                # Process sequence
+                seq_features = self.preprocess_sequence(row['sequence'])
+                struct_features = self.preprocess_structure(row['structure'])
+                
+                # Get ESM embeddings
+                embeddings = self.generate_esm_embeddings(row['sequence'])
+                embeddings = embeddings.mean(axis=0)
+                
+                # Convert feature dictionaries to arrays
+                seq_feat_array = np.array(list(seq_features.values()))
+                struct_feat_array = np.array(list(struct_features.values()))
+                
+                # Combine features
+                combined_features = np.concatenate([
+                    embeddings,
+                    seq_feat_array,
+                    struct_feat_array
+                ])
+                
+                sequences.append(row['sequence'])
+                features.append(combined_features)
+                
+                # Process targets
+                for name in targets:
+                    if name in row and isinstance(row[name], list) and len(row[name]) > 0:
+                        targets[name].append(np.array(row[name]).astype(np.float32))
+                    else:
+                        # Use zeros as default if target not found
+                        targets[name].append(np.zeros(68, dtype=np.float32))
+                        
+            except Exception as e:
+                print(f"Error processing row {idx}: {e}")
+                continue
         
-        return (
-            sequences,
-            np.array(features),
-            {k: np.array(v) for k, v in targets.items()}
-        )
+        if not sequences:
+            raise ValueError("No sequences were processed successfully")
+        
+        # Convert lists to numpy arrays
+        features_array = np.stack(features)
+        targets_dict = {k: np.stack(v) for k, v in targets.items()}
+        
+        print(f"Processed {len(sequences)} sequences")
+        print(f"Features shape: {features_array.shape}")
+        for k, v in targets_dict.items():
+            print(f"{k} shape: {v.shape}")
+        
+        return sequences, features_array, targets_dict
     
     def save_processed_data(self, sequences: List[str], features: np.ndarray, 
-                          targets: Dict[str, np.ndarray], split: str):
+                        targets: Dict[str, np.ndarray], split: str):
         """Save processed data"""
         output_dir = Path(self.config.data.processed_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -114,8 +137,8 @@ class RNAPreprocessor:
                 f.write(f"{seq}\n")
         
         # Save features
-        np.save(output_dir / f"{split}_features.npy", features)
+        np.save(output_dir / f"{split}_features.npy", features.astype(np.float32))
         
         # Save targets
         for name, values in targets.items():
-            np.save(output_dir / f"{split}_{name}.npy", values)
+            np.save(output_dir / f"{split}_{name}.npy", values.astype(np.float32))

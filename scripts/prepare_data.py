@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 import sys
 from os.path import abspath, dirname
+import pandas as pd
 
 # Add project root to Python path
 project_root = dirname(dirname(abspath(__file__)))
@@ -23,18 +24,33 @@ def main():
     # Update paths in config
     config.data.processed_dir = args.output_dir
     
+    # Create output directory
+    Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+    
     # Initialize preprocessor
     preprocessor = RNAPreprocessor(config)
     
-    # Process training data
-    train_data = preprocessor.load_data(Path(args.input_dir) / 'train.csv')
+    print("Loading training data...")
+    train_data = pd.read_json(Path(args.input_dir) / 'train.json', lines=True)
+    print(f"Loaded {len(train_data)} training samples")
+    
+    print("Processing training data...")
     sequences, features, targets = preprocessor.process_data(train_data)
+    
+    print("Saving processed data...")
     preprocessor.save_processed_data(sequences, features, targets, 'train')
     
-    # Process validation data
-    val_data = preprocessor.load_data(Path(args.input_dir) / 'test.csv')
-    sequences, features, targets = preprocessor.process_data(val_data)
-    preprocessor.save_processed_data(sequences, features, targets, 'val')
+    print("Loading test data...")
+    test_data = pd.read_json(Path(args.input_dir) / 'test.json', lines=True)
+    print(f"Loaded {len(test_data)} test samples")
+    
+    print("Processing test data...")
+    sequences, features, targets = preprocessor.process_data(test_data)
+    
+    print("Saving processed data...")
+    preprocessor.save_processed_data(sequences, features, targets, 'test')
+    
+    print("Data processing completed!")
 
 if __name__ == "__main__":
     main()

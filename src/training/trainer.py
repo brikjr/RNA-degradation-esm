@@ -4,6 +4,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from typing import Dict, Tuple
 import logging
+from tqdm import tqdm, trange
 from ..models.metrics import RNAMetrics
 from ..visualization.visualizer import TrainingVisualizer
 
@@ -11,7 +12,8 @@ class RNATrainer:
     def __init__(self, model: nn.Module, config: Dict):
         self.model = model
         self.config = config
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+        print(f'Using device: {self.device}')
         
         # Setup optimizer and scheduler
         self.optimizer = optim.AdamW(
@@ -39,7 +41,8 @@ class RNATrainer:
         self.model.train()
         total_loss = 0
         
-        for batch_idx, batch in enumerate(train_loader):
+        pbar = tqdm(train_loader, desc="Training")
+        for batch in pbar:
             self.optimizer.zero_grad()
             
             # Forward pass
@@ -66,9 +69,8 @@ class RNATrainer:
             self.optimizer.step()
             total_loss += loss.item()
             
-            # Log progress
-            if batch_idx % self.config.logging.log_interval == 0:
-                self.logger.info(f'Train Batch: {batch_idx}/{len(train_loader)}, Loss: {loss.item():.4f}')
+            # Update progress bar
+            pbar.set_postfix({'loss': f'{loss.item():.4f}'})
         
         return total_loss / len(train_loader)
     
@@ -108,7 +110,8 @@ class RNATrainer:
         """Full training loop"""
         best_val_loss = float('inf')
         
-        for epoch in range(self.config.training.epochs):
+        print("Starting training...")
+        for epoch in trange(self.config.training.epochs, desc="Epochs"):
             # Train epoch
             train_loss = self.train_epoch(train_loader)
             
@@ -128,10 +131,18 @@ class RNATrainer:
             # Save best model
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
-                torch.save(self.model.state_dict(), 
-                         f"{self.config.logging.save_dir}/best_model.pt")
+                torch.save(
+                    self.model.state_dict(), 
+                    f"{self.config.logging.save_dir}/best_model.pt"
+                )
+                print(f"New best model saved! Val Loss: {val_loss:.4f}")
             
-            self.logger.info(f"Epoch {epoch}: Train Loss = {train_loss:.4f}, Val Loss = {val_loss:.4f}")
+            # Print epoch summary
+            print(f"\nEpoch {epoch+1}/{self.config.training.epochs}")
+            print(f"Train Loss: {train_loss:.4f}")
+            print(f"Val Loss: {val_loss:.4f}")
+            for name, value in metrics.items():
+                print(f"{name}: {value:.4f}")
     
     @staticmethod
     def aggregate_predictions(predictions_list: list) -> Dict[str, torch.Tensor]:

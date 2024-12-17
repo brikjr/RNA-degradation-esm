@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
+from tqdm import tqdm
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -28,21 +29,27 @@ class RNADataModule:
     
     def load_processed_data(self, split: str) -> Tuple[List[str], np.ndarray, Dict[str, np.ndarray]]:
         """Load processed data files"""
+        print(f"Loading {split} data...")
+        
         # Load sequences
         with open(self.processed_dir / f"{split}_sequences.txt") as f:
-            sequences = [line.strip() for line in f]
-            
+            sequences = [line.strip() for line in tqdm(f, desc="Loading sequences")]
+        
         # Load features
+        print("Loading features...")
         features = np.load(self.processed_dir / f"{split}_features.npy")
         
         # Load targets
+        print("Loading targets...")
         targets = {}
-        for target_name in ['reactivity', 'deg_Mg_pH10', 'deg_pH10', 'deg_Mg_50C', 'deg_50C']:
+        for target_name in tqdm(['reactivity', 'deg_Mg_pH10', 'deg_pH10', 
+                               'deg_Mg_50C', 'deg_50C'], desc="Loading targets"):
             target_path = self.processed_dir / f"{split}_{target_name}.npy"
             if target_path.exists():
-                targets[target_name] = np.load(target_path)
+                target_array = np.load(target_path, allow_pickle=True)
+                targets[target_name] = target_array.astype(np.float32)
         
-        return sequences, features, targets
+        return sequences, features.astype(np.float32), targets
     
     def create_dataloader(self, split: str, batch_size: int, 
                          shuffle: bool = True) -> DataLoader:
