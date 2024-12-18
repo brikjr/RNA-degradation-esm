@@ -16,6 +16,7 @@ setup(
         "pyyaml>=5.4.0",
         "ipykernel>=5.1.0",
         "tqdm==4.67.1",
+        "viennarna",
     ],
     author="Rishabh Pandey",
     author_email="brikjr@gmail.com",
