@@ -7,6 +7,25 @@ This project implements RNA structure prediction using ESM (Evolutionary Scale M
 
 ```mermaid
 graph TB
+    subgraph Training
+        F1[Batch Processing]:::trainNode
+        F2[Forward Pass]:::trainNode
+        F3[Loss Calculation]:::trainNode
+        F4[Backpropagation]:::trainNode
+        F1 --> F2 --> F3 --> F4
+        F4 --> |Next Batch| F1
+    end
+
+    subgraph Monitoring
+        H1[TensorBoard]:::monitorNode
+        H2[Metrics]:::monitorNode
+        H3[Checkpoints]:::monitorNode
+        F3 --> H1 & H2 --> H3
+    end
+```
+
+```mermaid
+graph TB
     subgraph Input Data
         A1[RNA Sequences]:::inputNode
         A2[Structure]:::inputNode
@@ -37,22 +56,6 @@ graph TB
         E4[deg_Mg_50C]:::outputNode
         E5[deg_50C]:::outputNode
         D3 --> E1 & E2 & E3 & E4 & E5
-    end
-
-    subgraph Training
-        F1[Batch Processing]:::trainNode
-        F2[Forward Pass]:::trainNode
-        F3[Loss Calculation]:::trainNode
-        F4[Backpropagation]:::trainNode
-        F1 --> F2 --> F3 --> F4
-        F4 --> |Next Batch| F1
-    end
-
-    subgraph Monitoring
-        H1[TensorBoard]:::monitorNode
-        H2[Metrics]:::monitorNode
-        H3[Checkpoints]:::monitorNode
-        F3 --> H1 & H2 --> H3
     end
 ```
 
