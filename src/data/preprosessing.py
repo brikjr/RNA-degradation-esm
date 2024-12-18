@@ -7,6 +7,7 @@ import esm
 import json
 from collections import Counter
 from tqdm import tqdm
+from sklearn.model_selection import train_test_split
 
 class RNAPreprocessor:
     def __init__(self, config):
@@ -127,18 +128,35 @@ class RNAPreprocessor:
     
     def save_processed_data(self, sequences: List[str], features: np.ndarray, 
                         targets: Dict[str, np.ndarray], split: str):
-        """Save processed data"""
+        """Save processed data with train/val split if it's training data"""
         output_dir = Path(self.config.data.processed_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        # Save sequences
-        with open(output_dir / f"{split}_sequences.txt", 'w') as f:
-            for seq in sequences:
-                f.write(f"{seq}\n")
-        
-        # Save features
-        np.save(output_dir / f"{split}_features.npy", features.astype(np.float32))
-        
-        # Save targets
-        for name, values in targets.items():
-            np.save(output_dir / f"{split}_{name}.npy", values.astype(np.float32))
+        if split == 'train':
+            # Create train/val split
+            indices = np.arange(len(sequences))
+            train_idx, val_idx = train_test_split(indices, test_size=0.2, random_state=42)
+            
+            # Save training data
+            with open(output_dir / "train_sequences.txt", 'w') as f:
+                for idx in train_idx:
+                    f.write(f"{sequences[idx]}\n")
+            np.save(output_dir / "train_features.npy", features[train_idx].astype(np.float32))
+            for name, values in targets.items():
+                np.save(output_dir / f"train_{name}.npy", values[train_idx].astype(np.float32))
+            
+            # Save validation data
+            with open(output_dir / "val_sequences.txt", 'w') as f:
+                for idx in val_idx:
+                    f.write(f"{sequences[idx]}\n")
+            np.save(output_dir / "val_features.npy", features[val_idx].astype(np.float32))
+            for name, values in targets.items():
+                np.save(output_dir / f"val_{name}.npy", values[val_idx].astype(np.float32))
+                
+        else:  # For test data
+            with open(output_dir / f"test_sequences.txt", 'w') as f:
+                for seq in sequences:
+                    f.write(f"{seq}\n")
+            np.save(output_dir / f"test_features.npy", features.astype(np.float32))
+            for name, values in targets.items():
+                np.save(output_dir / f"test_{name}.npy", values.astype(np.float32))
