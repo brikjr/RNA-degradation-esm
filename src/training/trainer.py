@@ -55,6 +55,7 @@ class RNATrainer:
             # Calculate loss
             loss = 0
             for name in predictions:
+                # Both pred and target should be [batch_size, 68]
                 loss += nn.MSELoss()(predictions[name], targets[name])
             
             # Backward pass

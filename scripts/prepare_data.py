@@ -30,25 +30,34 @@ def main():
     # Initialize preprocessor
     preprocessor = RNAPreprocessor(config)
     
+    # Check if files already exist
+    if preprocessor.check_files_exist('train') and preprocessor.check_files_exist('test'):
+        print("All processed files already exist. Skipping preprocessing.")
+        return
+    
     print("Loading training data...")
     train_data = pd.read_json(Path(args.input_dir) / 'train.json', lines=True)
     print(f"Loaded {len(train_data)} training samples")
     
-    print("Processing training data...")
-    sequences, features, targets = preprocessor.process_data(train_data)
+    if not preprocessor.check_files_exist('train'):
+        print("Processing training data...")
+        sequences, features, targets = preprocessor.process_data(train_data)
+        print("Saving processed data...")
+        preprocessor.save_processed_data(sequences, features, targets, 'train')
+    else:
+        print("Training data already processed. Skipping.")
     
-    print("Saving processed data...")
-    preprocessor.save_processed_data(sequences, features, targets, 'train')
-    
-    print("Loading test data...")
-    test_data = pd.read_json(Path(args.input_dir) / 'test.json', lines=True)
-    print(f"Loaded {len(test_data)} test samples")
-    
-    print("Processing test data...")
-    sequences, features, targets = preprocessor.process_data(test_data)
-    
-    print("Saving processed data...")
-    preprocessor.save_processed_data(sequences, features, targets, 'test')
+    if not preprocessor.check_files_exist('test'):
+        print("Loading test data...")
+        test_data = pd.read_json(Path(args.input_dir) / 'test.json', lines=True)
+        print(f"Loaded {len(test_data)} test samples")
+        
+        print("Processing test data...")
+        sequences, features, targets = preprocessor.process_data(test_data)
+        print("Saving processed data...")
+        preprocessor.save_processed_data(sequences, features, targets, 'test')
+    else:
+        print("Test data already processed. Skipping.")
     
     print("Data processing completed!")
 

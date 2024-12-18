@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Dict, List
 import pandas as pd
+from pathlib import Path
+from collections import defaultdict
 
 class MetricsVisualizer:
     def __init__(self, log_dir: str):

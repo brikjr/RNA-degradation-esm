@@ -19,46 +19,41 @@ class RNAPreprocessor:
         )
         self.esm_model.eval()
     
-    def load_data(self, file_path: Path) -> pd.DataFrame:
-        """Load data from a CSV file into a pandas DataFrame."""
-        return pd.read_csv(file_path)
-
-        
-    def preprocess_sequence(self, sequence: str) -> Dict[str, float]:
-        """Extract sequence features"""
-        counts = Counter(sequence)
-        length = len(sequence)
-        
-        return {
-            'gc_content': (counts['G'] + counts['C']) / length,
-            'au_content': (counts['A'] + counts['U']) / length,
-            'sequence_length': length,
-            'purine_content': (counts['A'] + counts['G']) / length
-        }
-    
-    def preprocess_structure(self, structure: str) -> Dict[str, float]:
-        """Extract structure features"""
-        length = len(structure)
-        paired = structure.count('(') + structure.count(')')
-        unpaired = structure.count('.')
-        
-        return {
-            'paired_ratio': paired / (2 * length),
-            'unpaired_ratio': unpaired / length
-        }
-    
     def generate_esm_embeddings(self, sequence: str) -> np.ndarray:
         """Generate ESM embeddings for sequence."""
-        # Get the batch converter for encoding
         batch_converter = self.alphabet.get_batch_converter()
         with torch.no_grad():
-            # Prepare the sequence as input
-            batch_labels, batch_strs, batch_tokens = batch_converter([("sequence", sequence)])
+            # Prepare the sequence as input with a label
+            batch_labels, batch_strs, batch_tokens = batch_converter([("seq", sequence)])
             
             # Pass through the model
             results = self.esm_model(batch_tokens, repr_layers=[33])
             embeddings = results["representations"][33].numpy()
         return embeddings[0]
+        
+    def check_files_exist(self, split: str) -> bool:
+        """Check if processed files already exist for a given split"""
+        output_dir = Path(self.config.data.processed_dir)
+        
+        required_files = [
+            output_dir / f"{split}_sequences.txt",
+            output_dir / f"{split}_features.npy"
+        ]
+        
+        # Check for target files
+        for target in ['reactivity', 'deg_Mg_pH10', 'deg_pH10', 'deg_Mg_50C', 'deg_50C']:
+            required_files.append(output_dir / f"{split}_{target}.npy")
+            
+        # For training data, also check validation files
+        if split == 'train':
+            required_files.extend([
+                output_dir / "val_sequences.txt",
+                output_dir / "val_features.npy"
+            ])
+            for target in ['reactivity', 'deg_Mg_pH10', 'deg_pH10', 'deg_Mg_50C', 'deg_50C']:
+                required_files.append(output_dir / f"val_{target}.npy")
+        
+        return all(f.exists() for f in required_files)
     
     def process_data(self, df: pd.DataFrame) -> Tuple[List[str], np.ndarray, Dict[str, np.ndarray]]:
         """Process full dataset"""
@@ -129,6 +124,11 @@ class RNAPreprocessor:
     def save_processed_data(self, sequences: List[str], features: np.ndarray, 
                         targets: Dict[str, np.ndarray], split: str):
         """Save processed data with train/val split if it's training data"""
+        # Check if files already exist
+        if self.check_files_exist(split):
+            print(f"Processed files already exist for {split} split. Skipping processing.")
+            return
+            
         output_dir = Path(self.config.data.processed_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         
