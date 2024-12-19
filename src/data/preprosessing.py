@@ -4,7 +4,6 @@ import numpy as np
 from pathlib import Path
 from typing import Dict, List, Tuple
 import esm
-import json
 from collections import Counter
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
@@ -14,10 +13,81 @@ class RNAPreprocessor:
         self.config = config
         
         # Load ESM model for embeddings
+        print("Loading ESM model...")
         self.esm_model, self.alphabet = esm.pretrained.load_model_and_alphabet(
             config.model.esm_model
         )
         self.esm_model.eval()
+        print("ESM model loaded successfully")
+
+    def check_files_exist(self, split: str) -> bool:
+        """Check if processed files already exist for a given split"""
+        output_dir = Path(self.config.data.processed_dir)
+        
+        # List of files that should exist
+        required_files = [
+            output_dir / f"{split}_sequences.txt",
+            output_dir / f"{split}_features.npy"
+        ]
+        
+        # Check target files
+        for target in ['reactivity', 'deg_Mg_pH10', 'deg_pH10', 'deg_Mg_50C', 'deg_50C']:
+            required_files.append(output_dir / f"{split}_{target}.npy")
+        
+        # For training data, also check validation files
+        if split == 'train':
+            required_files.extend([
+                output_dir / "val_sequences.txt",
+                output_dir / "val_features.npy"
+            ])
+            for target in ['reactivity', 'deg_Mg_pH10', 'deg_pH10', 'deg_Mg_50C', 'deg_50C']:
+                required_files.append(output_dir / f"val_{target}.npy")
+        
+        # Check if all files exist
+        exists = all(f.exists() for f in required_files)
+        if exists:
+            print(f"All files exist for {split} split")
+        else:
+            print(f"Some files missing for {split} split, preparing files:")
+        return exists
+    
+    def preprocess_sequence(self, sequence: str) -> Dict[str, float]:
+        """Extract sequence features"""
+        # Convert T to U if present (DNA to RNA)
+        sequence = sequence.replace('T', 'U')
+        counts = Counter(sequence)
+        length = len(sequence)
+        
+        return {
+            'gc_content': (counts['G'] + counts['C']) / length if length > 0 else 0,
+            'au_content': (counts['A'] + counts['U']) / length if length > 0 else 0,
+            'sequence_length': length,
+            'purine_content': (counts['A'] + counts['G']) / length if length > 0 else 0
+        }
+    
+    def preprocess_structure(self, structure: str) -> Dict[str, float]:
+        """Extract structure features"""
+        # Handle cases where structure might be missing
+        if not structure or not isinstance(structure, str):
+            return {
+                'paired_ratio': 0.0,
+                'unpaired_ratio': 0.0
+            }
+            
+        length = len(structure)
+        if length == 0:
+            return {
+                'paired_ratio': 0.0,
+                'unpaired_ratio': 0.0
+            }
+            
+        paired = structure.count('(') + structure.count(')')
+        unpaired = structure.count('.')
+        
+        return {
+            'paired_ratio': paired / (2 * length),
+            'unpaired_ratio': unpaired / length
+        }
     
     def generate_esm_embeddings(self, sequence: str) -> np.ndarray:
         """Generate ESM embeddings for sequence."""
@@ -30,30 +100,6 @@ class RNAPreprocessor:
             results = self.esm_model(batch_tokens, repr_layers=[33])
             embeddings = results["representations"][33].numpy()
         return embeddings[0]
-        
-    def check_files_exist(self, split: str) -> bool:
-        """Check if processed files already exist for a given split"""
-        output_dir = Path(self.config.data.processed_dir)
-        
-        required_files = [
-            output_dir / f"{split}_sequences.txt",
-            output_dir / f"{split}_features.npy"
-        ]
-        
-        # Check for target files
-        for target in ['reactivity', 'deg_Mg_pH10', 'deg_pH10', 'deg_Mg_50C', 'deg_50C']:
-            required_files.append(output_dir / f"{split}_{target}.npy")
-            
-        # For training data, also check validation files
-        if split == 'train':
-            required_files.extend([
-                output_dir / "val_sequences.txt",
-                output_dir / "val_features.npy"
-            ])
-            for target in ['reactivity', 'deg_Mg_pH10', 'deg_pH10', 'deg_Mg_50C', 'deg_50C']:
-                required_files.append(output_dir / f"val_{target}.npy")
-        
-        return all(f.exists() for f in required_files)
     
     def process_data(self, df: pd.DataFrame) -> Tuple[List[str], np.ndarray, Dict[str, np.ndarray]]:
         """Process full dataset"""
@@ -73,13 +119,22 @@ class RNAPreprocessor:
         
         for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing rows"):
             try:
+                # Validate sequence
+                if not isinstance(row['sequence'], str) or len(row['sequence']) == 0:
+                    print(f"Invalid sequence in row {idx}")
+                    continue
+                
                 # Process sequence
                 seq_features = self.preprocess_sequence(row['sequence'])
-                struct_features = self.preprocess_structure(row['structure'])
+                struct_features = self.preprocess_structure(row.get('structure', ''))
                 
                 # Get ESM embeddings
-                embeddings = self.generate_esm_embeddings(row['sequence'])
-                embeddings = embeddings.mean(axis=0)
+                try:
+                    embeddings = self.generate_esm_embeddings(row['sequence'])
+                    embeddings = embeddings.mean(axis=0)
+                except Exception as e:
+                    print(f"Error generating embeddings for row {idx}: {e}")
+                    continue
                 
                 # Convert feature dictionaries to arrays
                 seq_feat_array = np.array(list(seq_features.values()))
@@ -97,10 +152,9 @@ class RNAPreprocessor:
                 
                 # Process targets
                 for name in targets:
-                    if name in row and isinstance(row[name], list) and len(row[name]) > 0:
+                    if name in row and isinstance(row[name], (list, np.ndarray)) and len(row[name]) > 0:
                         targets[name].append(np.array(row[name]).astype(np.float32))
                     else:
-                        # Use zeros as default if target not found
                         targets[name].append(np.zeros(68, dtype=np.float32))
                         
             except Exception as e:
@@ -122,13 +176,8 @@ class RNAPreprocessor:
         return sequences, features_array, targets_dict
     
     def save_processed_data(self, sequences: List[str], features: np.ndarray, 
-                        targets: Dict[str, np.ndarray], split: str):
+                          targets: Dict[str, np.ndarray], split: str):
         """Save processed data with train/val split if it's training data"""
-        # Check if files already exist
-        if self.check_files_exist(split):
-            print(f"Processed files already exist for {split} split. Skipping processing.")
-            return
-            
         output_dir = Path(self.config.data.processed_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         

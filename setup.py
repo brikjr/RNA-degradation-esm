@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "torch>=1.9.0",
-        "esm==2.0.1",
+        "fair-esm",
         "numpy>=1.19.2",
         "pandas>=1.2.0",
         "scikit-learn>=0.24.0",

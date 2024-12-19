@@ -126,10 +126,10 @@ pip install -e .
 ### 1. Data Preparation
 ```bash
 # Prepare raw data
-python scripts/prepare_data.sh
+python scripts/train.sh
 
 # Generate ESM embeddings
-python src/data/preprocessing.py --input data/raw --output data/embeddings
+python src/data/preprosessing.py --input data/raw --output data/embeddings
 ```
 
 ### 2. Training
