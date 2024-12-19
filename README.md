@@ -58,7 +58,25 @@ graph TB
         D3 --> E1 & E2 & E3 & E4 & E5
     end
 ```
+## Working model workflow
 
+```mermaid
+graph TB
+    subgraph Prediction Process
+        F1[Load Model]:::processNode
+        F2[Load Pre-computed Embeddings]:::processNode
+        F3[Sequence to Index Mapping]:::processNode
+        F4[Forward Pass]:::processNode
+        F5[Process Predictions]:::processNode
+        F1 & F2 --> F3 --> F4 --> F5
+    end
+
+    subgraph Output
+        H1[CSV Results]:::outputNode
+        H2[Statistics Summary]:::outputNode
+        F5 --> H1 & H2
+    end
+```
 ## Directory Structure
 ```
 rna_analysis/
@@ -73,10 +91,12 @@ rna_analysis/
 │       ├── test.json
 │       ├── train.csv
 │       └── train.json
+│
 ├── src/                      # Source code
 │   ├── data/                 # Data processing modules
 │   │   ├── __init__.py
 │   │   ├── preprocessing.py  # Data preprocessing functions
+│   │   ├── generate_embeddings.py
 │   │   └── loader.py        # Data loading utilities
 │   ├── models/              # Model implementations
 │   │   ├── __init__.py
@@ -92,21 +112,30 @@ rna_analysis/
 │   │   └── visualizer.py   # Plotting and TensorBoard utils
 │   └── notebooks/          # Jupyter notebooks
 │       ├── 01_data_exploration.ipynb
-│       └── 02_model_development.ipynb
+│       ├── 02_model_development.ipynb
+│       └── 03_embedding_analysis.ipynb
 │
 ├── configs/               # Configuration files
 │   ├── default.yaml
 │   └── few_shot.yaml
+│
 ├── tests/                # Unit tests
 │   ├── __init__.py
 │   ├── test_preprocessing.py
 │   └── test_model.py
+│
 ├── scripts/              # Utility scripts
 │   ├── train.sh
+│   ├── generate_embeddings.sh
+│   ├── prepare_data.py
 │   └── prepare_data.sh
-├── runs/                 # Experiment runs
+│
+├── runs/
+│   ├── best_model.pt    
 │   └── tensorboard/     # TensorBoard logs
+│
 ├── requirements.txt     # Project dependencies
+├── predict_degradation.py # main cli app
 ├── setup.py            # Package setup file
 └── README.md           # Project documentation
 ```
@@ -129,7 +158,7 @@ pip install -e .
 python scripts/train.sh
 
 # Generate ESM embeddings
-python src/data/preprosessing.py --input data/raw --output data/embeddings
+bash scripts/generate_embeddings.sh
 ```
 
 ### 2. Training
@@ -145,6 +174,12 @@ python src/training/trainer.py --config configs/few_shot.yaml
 ```bash
 # Launch TensorBoard
 tensorboard --logdir runs/tensorboard
+```
+
+### 4. Usage
+
+```bash
+python predict_degradation.py --fasta input.fasta
 ```
 
 ## Project Components
