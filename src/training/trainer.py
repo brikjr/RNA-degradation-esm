@@ -128,13 +128,14 @@ class RNATrainer:
             checkpoint_path = Path(self.config.logging.save_dir) / f'checkpoint_epoch_{epoch}.pt'
             torch.save(checkpoint, checkpoint_path)
             
-            # Save best model if this is the best so far
+            # Save best model's state_dict only
             if is_best:
                 best_model_path = Path(self.config.logging.save_dir) / 'best_model.pt'
-                torch.save(checkpoint, best_model_path)
+                torch.save(self.model.state_dict(), best_model_path)
                 print(f"New best model saved! Val Loss: {val_loss:.4f}")
         except Exception as e:
             print(f"Warning: Failed to save checkpoint: {e}")
+
 
     # def save_checkpoint(self, epoch: int, val_loss: float, is_best: bool = False):
     #     """Save model checkpoint with robust error handling"""

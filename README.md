@@ -61,21 +61,22 @@ graph TB
 ## Working model workflow
 
 ```mermaid
-graph TB
-    subgraph Prediction Process
-        F1[Load Model]:::processNode
-        F2[Load Pre-computed Embeddings]:::processNode
-        F3[Sequence to Index Mapping]:::processNode
-        F4[Forward Pass]:::processNode
-        F5[Process Predictions]:::processNode
-        F1 & F2 --> F3 --> F4 --> F5
+flowchart TB
+    subgraph "Prediction"
+    H[New RNA Sequences] --> I[Load Pre-computed Embeddings]
+    I --> J[Load Trained Model]
+    J --> K[Predict Degradation]
+    K --> L[Generate Detailed Predictions]
     end
 
     subgraph Output
         H1[CSV Results]:::outputNode
         H2[Statistics Summary]:::outputNode
-        F5 --> H1 & H2
+        L --> H1 & H2
     end
+    class A,C,I data;
+    class B,E,J process;
+    class K,L output;
 ```
 ## Directory Structure
 ```
@@ -179,7 +180,7 @@ tensorboard --logdir runs/tensorboard
 ### 4. Usage
 
 ```bash
-python predict_degradation.py --fasta input.fasta
+python predict_degradation.py --fasta input.fasta --model runs/model_path.pt
 ```
 
 ## Project Components

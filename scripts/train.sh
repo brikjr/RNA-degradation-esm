@@ -13,4 +13,4 @@ python scripts/prepare_data.py \
 python scripts/train.py \
     --config configs/default.yaml \
     --mode train \
-    --output_dir runs/experiment_1
+    --output_dir runs
