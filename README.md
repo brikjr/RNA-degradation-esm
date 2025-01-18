@@ -238,16 +238,6 @@ black src/
 mypy src/
 ```
 
-## Citation
-If you use this code, please cite:
-```bibtex
-@article{your-paper,
-  title={RNA Structure Prediction with Few-Shot Learning},
-  author={Your Name},
-  year={2024}
-}
-```
-
 ## License
 MIT License
 
