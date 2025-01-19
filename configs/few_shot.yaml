@@ -9,7 +9,7 @@ few_shot:
   adaptation_steps: 5
   meta_lr: 0.001
   update_step_size: 0.1
-  
+
 model:
   use_prototypes: true
   prototype_dim: 128
